@@ -10,11 +10,21 @@ import line from 'components/line/line'
 import dashboard from 'components/dashboard/dashboard'
 import multipleColumn from 'components/multipleColumn/multipleColumn'
 import {DatePicker} from 'element-ui'
+import VueAMap from 'vue-amap'
+
+
 
 Vue.component(DatePicker.name, DatePicker)
 
 Vue.use(VueRouer)
 Vue.use(Vuex)
+Vue.use(VueAMap);
+
+VueAMap.initAMapApiLoader({
+  key: '8f3455c5dbad01bc7c7d42eff5f10aac',
+  plugin: ['AMap.Autocomplete', 'AMap.PlaceSearch', 'AMap.Scale', 'AMap.Polyline', 'AMap.ToolBar', 'AMap.PolyEditor', 'AMap.Marker','AMap.MapType','AMap.Geolocation'],
+  uiVersion: '1.0'
+});
 
 const store = new Vuex.Store({
   state: {
@@ -50,7 +60,7 @@ const router = new VueRouer({
 new Vue({
   router,
   store,
-  template: '<App>',
+  template: '<App></App>',
   components: {
     App
   },

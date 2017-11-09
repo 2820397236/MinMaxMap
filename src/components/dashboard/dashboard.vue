@@ -1,17 +1,9 @@
 <template lang="html">
   <div class="dashboard">
     <div class="flex-container column">
-        <div class="item one" @click="clickChart('1')" style="transform: translate(-22.4%,-33.5%) scale(0.33)">
-          <multipleColumn></multipleColumn>
-        </div>
-        <div class="item two" @click="clickChart('2')" style="transform: translate(-22.4%,0.5%) scale(0.33)">
-          <column></column>
-        </div>
-        <div class="item three" @click="clickChart('3')" style="transform: translate(-22.4%,34.5%) scale(0.33)">
-          <v-line></v-line>
-        </div>
-        <div class="item four active" @click="clickChart('4')" style="transform: translate(43.7%, 0) scale(1)">
-          <point></point>
+        
+        <div class="item four active"  style="transform: translate(0, 0) scale(1)">
+          <heat></heat>
         </div>
     </div>
   </div>
@@ -22,6 +14,7 @@ import column from 'components/column/column'
 import line from 'components/line/line'
 import multipleColumn from 'components/multipleColumn/multipleColumn'
 import point from 'components/point/point'
+import heat from 'components/heat/heat'
 
 export default {
   data() {
@@ -66,6 +59,7 @@ export default {
     column,
     multipleColumn,
     point,
+    heat,
     'v-line': line
   }
 }
@@ -107,7 +101,47 @@ export default {
     box-sizing: content-box;
 .active
     height 100%
-    width: 69%;
-    margin-left: 10px;
+    width: 100%;
+    /*margin-left: 10px;*/
     line-height: 300px;
+.list
+    li
+        height 120px;
+        line-height 120px;
+        font-size 40px;
+        color #000;
+        background-color: #fff;
+.title
+  position relative
+  display flex
+  height 50px
+  line-height 50px
+  background-color rgba(32, 32, 35, 0.2)
+  color white
+  width 100%
+  h1
+    flex 0 0 120px
+    font-size 21px
+    font-weight bold
+    padding-left 20px
+  ul
+    position absolute
+    right 0
+    padding-right 20px
+    margin-top -2px
+    li
+      display inline-block
+      min-width 59px
+      padding 2px 10px 2px 10px
+      line-height 20px
+      text-align center
+      font-size 11px
+      &:first-child
+        border-top-left-radius 5px
+        border-bottom-left-radius 5px
+      &:last-child
+        border-top-right-radius 5px
+        border-bottom-right-radius 5px
+      &+li
+        margin-left: -1px
 </style>
