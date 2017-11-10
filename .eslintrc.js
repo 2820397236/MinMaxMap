@@ -30,6 +30,7 @@ module.exports = {
     'no-undef': 0,
     'quotes': 0,
     'no-dupe-keys': 0,
+    'no-eval':0,
     'null': 0
   }
 }

@@ -3,13 +3,15 @@
 <div class="heat">
   <v-header :name="name" :legendArr="legendArr" :myChart="myChart"></v-header>
   <div class="main">
-    <el-amap vid="amapDemo"  :center="center" :zoom="zoom" :events="events" class="amap-demo" :zoomEnable="zoomEnable"></el-amap>
+    <!-- <el-amap vid="amapDemo"  :center="center" :zoom="zoom" :events="events" class="amap-demo" :zoomEnable="zoomEnable"></el-amap> -->
+    <div id="amap-main"></div>
     <div>
-      <input type="button" class="button" value="开始" id="start" style="position:absolute;top:10px;right:200px"/>
+      <!-- <input type="button" class="button" value="开始" id="start" style="position:absolute;top:10px;right:200px"/>
       <input type="button" class="button" value="释放" id="pause" style="position:absolute;top:10px;right:150px"/>
       <input type="button" class="button" value="回收" id="resume" style="position:absolute;top:10px;right:100px"/>
       <input type="button" class="button" value="暂停" id="stop" style="position:absolute;top:10px;right:50px"/>
-      <input type="button" class="button" value="继续" id="load" style="position:absolute;top:10px;right:0px"/>
+      <input type="button" class="button" value="继续" id="load" style="position:absolute;top:10px;right:0px"/> -->
+      <input type="button" class="button" value="GO" id="load" style="position:absolute;top:10px;right:0px" @click="stepByStep()"/>
     </div>
   </div>
 </div>
@@ -20,21 +22,53 @@ import axios from 'axios'
 import echarts from 'echarts'
 import china from 'echarts/map/js/china'
 import header from 'components/header/header'
-import VueAMap from 'vue-amap';
-
-let amapManager = new VueAMap.AMapManager();
+import { lazyAMapApiLoaderInstance } from 'vue-amap';
+// let amapManager = new VueAMap.AMapManager();
 let _this = this;
 module.exports = {
   data: function() {
     return {
+      userStatus: 'start',
+      isEmpty: true,
+      rbtReady: 0,
+      map: null,
+      data: null,
+      car: null,
+      step: 0,
+      robot: [],
       legendArr: [],
+      lineArr: [
+        // [121.468882, 31.214489],
+        // [121.468174, 31.214268],
+        // [121.4676, 31.215218],
+        // [121.467203, 31.216113],
+        // [121.464821, 31.215535],
+        // [121.46458, 31.216507]
+        // [121.466758, 31.2172],
+        // [121.46635, 31.2182],
+        // [121.467514, 31.21865],
+        // [121.468775, 31.219214],
+        // [121.469376, 31.219388],
+        // [121.469756, 31.219384],
+        // [121.470631, 31.219347],
+        // [121.470813, 31.219159],
+        // [121.470931, 31.21904],
+        // [121.471446, 31.218989],
+        // [121.471725, 31.219058],
+        // [121.471993, 31.21915],
+        // [121.473141, 31.21943],
+        // [121.473168, 31.218732],
+        // [121.473195, 31.21804],
+        // [121.473262, 31.216306],
+        // [121.473327, 31.21571],
+        // [121.474485, 31.216104]
+      ],
       color: this.$store.state.color,
       myChart: {},
       name: '总控台',
       zoom: 19,
       zoomEnable: true,
       center: [121.468812, 31.214569],
-      car: null,
       events: {
         init(o) {
           let car = null;
@@ -45,25 +79,25 @@ module.exports = {
             [121.4676, 31.215218],
             [121.467203, 31.216113],
             [121.464821, 31.215535],
-            [121.46458, 31.216507],
-            [121.466758, 31.2172],
-            [121.46635, 31.2182],
-            [121.467514, 31.21865],
-            [121.468775, 31.219214],
-            [121.469376, 31.219388],
-            [121.469756, 31.219384],
-            [121.470631, 31.219347],
-            [121.470813, 31.219159],
-            [121.470931, 31.21904],
-            [121.471446, 31.218989],
-            [121.471725, 31.219058],
-            [121.471993, 31.21915],
-            [121.473141, 31.21943],
-            [121.473168, 31.218732],
-            [121.473195, 31.21804],
-            [121.473262, 31.216306],
-            [121.473327, 31.21571],
-            [121.474485, 31.216104]
+            [121.46458, 31.216507]
+            // [121.466758, 31.2172],
+            // [121.46635, 31.2182],
+            // [121.467514, 31.21865],
+            // [121.468775, 31.219214],
+            // [121.469376, 31.219388],
+            // [121.469756, 31.219384],
+            // [121.470631, 31.219347],
+            // [121.470813, 31.219159],
+            // [121.470931, 31.21904],
+            // [121.471446, 31.218989],
+            // [121.471725, 31.219058],
+            // [121.471993, 31.21915],
+            // [121.473141, 31.21943],
+            // [121.473168, 31.218732],
+            // [121.473195, 31.21804],
+            // [121.473262, 31.216306],
+            // [121.473327, 31.21571],
+            // [121.474485, 31.216104]
           ];
           let userArr = [
             [[121.467423, 31.214727]],
@@ -347,19 +381,186 @@ module.exports = {
   components: {
     'v-header': header
   },
-  methods: {
-    add() {
-      let o = amapManager.getMap();
-      let marker = new AMap.Marker({
-        position: [121.59996, 31.177646]
+  mounted() {
+    this.initRouter();
+    this.stepByStep();
+    lazyAMapApiLoaderInstance.load().then(() => {
+      this.map = new AMap.Map('amap-main', {
+        zoom: 19,
+        zoomEnable: true,
+        center: [121.468812, 31.214569]
       });
 
-      marker.setMap(o);
+      var polyline = new AMap.Polyline({
+        map: this.map,
+        path: this.lineArr,
+        strokeColor: "#FFB63E",
+        // strokeOpacity: 1,
+        strokeWeight: 4
+        // strokeStyle: "solid"
+      });
+    });
+  },
+  methods: {
+    add() {
     },
     onComplete(data) {
     },
     onError(data) {
       console.log('error');
+    },
+    initRouter() {
+      let _this = this;
+      axios.post('http://demo.icoos.cn:4999/bigMap/get/runMap/1000').then((res) => {
+        _this.data = JSON.parse(res.data.data);
+        console.log(_this.data);
+      });
+    },
+    stepByStep() {
+      let _this = this;
+      setInterval(() => {
+        axios.post('http://demo.icoos.cn:4999/bigQueue/isEmpty/MinMaxStep').then((res) => {
+          _this.isEmpty = res.data;
+          // console.log(_this.isEmpty);
+          if (_this.isEmpty === false) {
+            axios.post('http://demo.icoos.cn:4999/bigQueue/poll/MinMaxStep').then((response) => {
+              var query = response.data.data.substr(1, response.data.data.length - 2);
+              console.log(query);
+              eval(query);
+            });
+          }
+        });
+        axios.post('http://demo.icoos.cn:4999/bigMap/get/MinMaxDeliveryStatus/user').then((res) => {
+          var json = JSON.parse(res.data.data);
+
+          if (json.status === 'start') {
+            var iconStore = new AMap.Icon({
+              image: "http://opub24jup.bkt.clouddn.com/coos/boton_dwd_red.png",
+              size: new AMap.Size(18, 18),
+              imageSize: new AMap.Size(18, 18)
+            });
+            _this.userStatus = new AMap.Marker({
+              map: _this.map,
+              position: [121.467423, 31.214727],
+              icon: iconStore,
+              offset: new AMap.Pixel(-9, -9),
+              zIndex: 100
+            });
+          } else if (json.status === 'finish') {
+            if (_this.userStatus != null) {
+              _this.map.remove(_this.userStatus);
+            }
+          }
+        });
+      }, 500);
+    },
+    goToMap(o, data, step, line) {
+      var _this = this;
+
+      if (_this.car == null) {
+        // 车
+        var iconCar = new AMap.Icon({
+          image: 'http://opub24jup.bkt.clouddn.com/ico_car_1.png',
+          size: new AMap.Size(39.5, 28.5),
+          imageSize: new AMap.Size(39.5, 28.5)
+        });
+        _this.car = new AMap.Marker({
+          map: o,
+          position: data[step].path[0].line[0],
+          icon: iconCar,
+          offset: new AMap.Pixel(-18, -14),
+          autoRotation: true,
+          zIndex: 100
+        });
+      }
+
+      // 商家
+      if (data[step].point !== undefined) {
+        o.setFitView();
+        data[step].point.forEach(point => {
+          var iconStore = new AMap.Icon({
+            image: point.pic,
+            size: new AMap.Size(18, 18),
+            imageSize: new AMap.Size(18, 18)
+          });
+          var markStore = new AMap.Marker({
+            map: o,
+            position: point.location,
+            icon: iconStore,
+            offset: new AMap.Pixel(-9, -9),
+            zIndex: 100
+          });
+        })
+      }
+
+      if (data[step].type === 2) {
+        o.setFitView();
+        _this.robot.forEach(rbt => {
+          o.remove(rbt);
+        })
+        this.rbtReady = 0;
+        // 路线
+        var polyline = new AMap.Polyline({
+          map: o,
+          path: data[step].path[0].line,
+          strokeColor: "#FFB63E",
+          strokeOpacity: 1,
+          strokeWeight: 4,
+          strokeStyle: "solid"
+        });
+        var passedPolyline = new AMap.Polyline({
+          map: o,
+          strokeColor: "#0E92FF",
+          strokeOpacity: 1,
+          strokeWeight: 4,
+          strokeStyle: "solid"
+        });
+        _this.car.moveAlong(data[step].path[0].line, 80);
+        _this.car.on('movealong', function(e) {
+          _this.step = step + 1;
+        });
+      } else if (data[step].type === 1) {
+        o.setFitView();
+        let rbtNo = line || 0;
+        // document.querySelectorAll('.botton_right')[rbtNo].style.backgroundColor = '#C0CCE1';
+        // document.querySelectorAll('.botton_right')[rbtNo].innerHTML = '等待中';
+        data[step].path[rbtNo].status = 1;
+        let rbt = new AMap.Marker({
+          map: o,
+          position: data[step].path[rbtNo].line[0],
+          icon: "http://opub24jup.bkt.clouddn.com/coos/ico_robot_small.png",
+          offset: new AMap.Pixel(-28, -28),
+          autoRotation: false
+        });
+
+        var polylineRbt = new AMap.Polyline({
+          map: o,
+          path: data[step].path[rbtNo].line,
+          strokeColor: "#677C96",
+          strokeOpacity: 1,
+          strokeWeight: 4,
+          strokeStyle: "dashed"
+        });
+        // var passedPolylineRbt = new AMap.Polyline({
+        //   map: o,
+        //   strokeColor: "#677C96",
+        //   strokeOpacity: 0,
+        //   strokeWeight: 4,
+        //   strokeStyle: "dashed"
+        // });
+        rbt.on('movealong', function(e) {
+          // document.querySelectorAll('.botton_right')[rbtNo].style.backgroundColor = '#16D6B4';
+          // document.querySelectorAll('.botton_right')[rbtNo].innerHTML = '已返回';
+          data[step].path[rbtNo].status = 2;
+          _this.rbtReady ++;
+          console.log(_this.rbtReady);
+          if (_this.rbtReady === data[step].path.length) {
+            _this.step = step + 1;
+          }
+        })
+        rbt.moveAlong(data[step].path[rbtNo].line, 80);
+        _this.robot.push(rbt);
+      }
     }
   }
 };
@@ -371,4 +572,7 @@ module.exports = {
   height 800px
   .main
     height 565px
+#amap-main
+  height: 800px;
+    
 </style>

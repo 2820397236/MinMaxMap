@@ -56,8 +56,8 @@ export default {
       }.bind(this))
     },
     _getCityData() {
-      axios.get('static/data/cityData.json').then((res) => {
-        this.geoCoordMap = res.data
+      axios.post('http://demo.icoos.cn:4999/bigMap/get/runMap/1').then((res) => {
+        console.log(res);
         this.$nextTick(() => {
           this._getMyChart()
         })
