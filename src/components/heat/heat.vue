@@ -411,7 +411,7 @@ module.exports = {
     },
     initRouter() {
       let _this = this;
-      axios.post('http://demo.icoos.cn:4999/bigMap/get/runMap/1000').then((res) => {
+      axios.post('http://jack.linkersocks.com:4999/bigMap/get/runMap/1000').then((res) => {
         _this.data = JSON.parse(res.data.data);
         console.log(_this.data);
       });
@@ -419,18 +419,18 @@ module.exports = {
     stepByStep() {
       let _this = this;
       setInterval(() => {
-        axios.post('http://demo.icoos.cn:4999/bigQueue/isEmpty/MinMaxStep').then((res) => {
+        axios.post('http://jack.linkersocks.com:4999/bigQueue/isEmpty/MinMaxStep').then((res) => {
           _this.isEmpty = res.data;
           // console.log(_this.isEmpty);
           if (_this.isEmpty === false) {
-            axios.post('http://demo.icoos.cn:4999/bigQueue/poll/MinMaxStep').then((response) => {
+            axios.post('http://jack.linkersocks.com:4999/bigQueue/poll/MinMaxStep').then((response) => {
               var query = response.data.data.substr(1, response.data.data.length - 2);
               console.log(query);
               eval(query);
             });
           }
         });
-        axios.post('http://demo.icoos.cn:4999/bigMap/get/MinMaxDeliveryStatus/user').then((res) => {
+        axios.post('http://jack.linkersocks.com:4999/bigMap/get/MinMaxDeliveryStatus/user').then((res) => {
           var json = JSON.parse(res.data.data);
 
           if (json.status === 'start') {
